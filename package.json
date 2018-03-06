@@ -1,0 +1,18 @@
+{
+  "name": "webpack-multiplePage",
+  "version": "1.0.0",
+  "description": "使用webpack相关技术优雅地开发传统多页面网站",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build/build.js"
+  },
+  "author": "lixin",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "chalk": "^2.3.2",
+    "ora": "^2.0.0",
+    "rimraf": "^2.6.2",
+    "webpack": "^3.11.0"
+  }
+}
