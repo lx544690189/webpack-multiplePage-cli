@@ -1,0 +1,8 @@
+#test1 {
+    display: flex;
+}
+
+#test2 {
+    flex-grow: 1;
+    flex-shrink: 0;
+}

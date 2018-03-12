@@ -3,12 +3,15 @@ const path = require('path')
 const rm = require('rimraf')
 const ora = require('ora')
 const chalk = require('chalk')
-const webpackConfig = require('./webpack.config')
+const webpackConfig = require('./webpack.prod.config')
+
 
 const spinner = ora('building for production...')
 spinner.start()
+//清理disk目录
 rm(path.resolve(__dirname, '../dist'), err => {
     if (err) throw err
+    //webpack打包
     webpack(webpackConfig, function (err, stats) {
         spinner.stop()
         if (err) throw err
