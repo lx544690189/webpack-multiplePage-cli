@@ -13,9 +13,8 @@ const devWebpackConfig ={
         page2: path.resolve(__dirname, '../src/view/page2/index.js')
     },
     output: {
-        path: path.resolve(__dirname, '../dist-dev'),
-        filename: path.posix.join('js/[name].[chunkhash].js'),
-        chunkFilename: path.posix.join('js/[name].[chunkhash].js'),
+        path: path.resolve(__dirname, '../dist'),
+        filename: path.posix.join('js/[name].js'),
         publicPath: '/'
     },
     module: {
@@ -24,12 +23,7 @@ const devWebpackConfig ={
             use: 'html-loader'
         }, {
             test: /\.css$/,
-            //use: ["style-loader", "css-loader", "postcss-loader"]
-            //使用ExtractTextPlugin抽离css，不编译到js中
-            use: ExtractTextPlugin.extract({
-                fallback: "style-loader",
-                use: ['css-loader?importLoaders=1', 'postcss-loader']
-            })
+            use: ["style-loader", "css-loader", "postcss-loader"]
         },
         {
             test: /\.js$/,
@@ -74,63 +68,45 @@ const devWebpackConfig ={
             }
         }),
         new webpack.HotModuleReplacementPlugin(),
-        //new webpack.NamedModulesPlugin(), // HMR shows correct file names in console on update.
-        //new webpack.NoEmitOnErrorsPlugin(),
-        //new autoInjectHtmlLoader({ title: 'auto inject title' }),
+        new webpack.NamedModulesPlugin(), // HMR shows correct file names in console on update.
+        new webpack.NoEmitOnErrorsPlugin(),//
+        new autoInjectHtmlLoader({ title: 'auto inject title' }),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "../src/view/page1/index.html"),
             filename: 'page1.html',
             chunks: ['vendors', 'page1'],
-            inject: 'body',
-            title: 'from HtmlWebpackPlugin inject'
+            inject: 'body'
         }),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, "../src/view/page2/index.html"),
             filename: 'page2.html',
             chunks: ['vendors', 'page2'],
             inject: 'body'
-        }),
+        })
     ]
 }
 
-var app = express();
+//module.exports = devWebpackConfig
 
-// webpack编译器
-var compiler = webpack(devWebpackConfig);
-
-// webpack-dev-server中间件
-var devMiddleware = require('webpack-dev-middleware')(compiler, {
-    publicPath: devWebpackConfig.output.publicPath
-});
-
-app.use(devMiddleware)
-
-// 路由
-app.get('/:viewname?', function (req, res, next) {
-
-    var viewname = req.params.viewname
-        ? req.params.viewname + '.html'
-        : 'index.html';
-
-    var filepath = path.join(compiler.outputPath, viewname);
-
-    // 使用webpack提供的outputFileSystem
-    compiler.outputFileSystem.readFile(filepath, function (err, result) {
+module.exports = new Promise((resolve, reject) => {
+    portfinder.basePort = 8080
+    portfinder.getPort((err, port) => {
         if (err) {
-            // something error
-            return next(err);
+            reject(err)
+        } else {
+            // publish the new Port, necessary for e2e tests
+            process.env.PORT = port
+            // add port to devServer config
+            devWebpackConfig.devServer.port = port
+
+            // Add FriendlyErrorsPlugin
+            devWebpackConfig.plugins.push(new FriendlyErrorsPlugin({
+                compilationSuccessInfo: {
+                    messages: [`Your application is running here: http://localhost:8080/`],
+                }
+            }))
+
+            resolve(devWebpackConfig)
         }
-        res.set('content-type', 'text/html');
-        res.send(result);
-        res.end();
-    });
-});
-
-module.exports = app.listen(8080, function (err) {
-    if (err) {
-        // do something
-        return;
-    }
-
-    console.log('Listening at http://localhost:' + port + '\n')
+    })
 })
